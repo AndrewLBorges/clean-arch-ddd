@@ -1,11 +1,11 @@
-import { validateCpf } from '../src/validateCpf';
+import { validateCpf } from '../src/domain/validateCpf';
 
 test.each(['97456321558', '87748248800'])(
   'Deve validar um cpf: %s',
   (cpf: string) => {
     const isValid = validateCpf(cpf);
     expect(isValid).toBe(true);
-  }
+  },
 );
 
 test.each(['974563215', null, undefined, '11111111111', '11111111abc'])(
@@ -13,5 +13,5 @@ test.each(['974563215', null, undefined, '11111111111', '11111111abc'])(
   (cpf: any) => {
     const isValid = validateCpf(cpf);
     expect(isValid).toBe(false);
-  }
+  },
 );

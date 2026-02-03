@@ -24,7 +24,7 @@ test('Deve criar uma conta', async () => {
   expect(responseGetAccount.status).toBe(200);
 
   const outputGetAccount = responseGetAccount.data;
-  expect(outputGetAccount.account_id).toBe(outputSignup.accountId);
+  expect(outputGetAccount.accountId).toBe(outputSignup.accountId);
   expect(outputGetAccount.name).toBe(input.name);
   expect(outputGetAccount.email).toBe(input.email);
   expect(outputGetAccount.document).toBe(input.document);
