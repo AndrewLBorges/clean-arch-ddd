@@ -17,11 +17,11 @@ export default class Signup {
 
     await this.accountRepository.saveAccount(account);
     await sendEmail(
-      account.email,
+      account.getEmail(),
       'Welcome!',
       'Your account has been created.',
     );
-    return { accountId: account.accountId };
+    return { accountId: account.getAccountId() };
   }
 }
 

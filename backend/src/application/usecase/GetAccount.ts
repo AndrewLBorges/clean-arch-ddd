@@ -9,11 +9,11 @@ export default class GetAccount {
   async execute(accountId: string): Promise<Output> {
     const account = await this.accountRepository.getAccountById(accountId);
     const output = {
-      accountId: account.accountId,
+      accountId: account.getAccountId(),
       name: account.getName(),
-      email: account.email,
-      document: account.document,
-      password: account.password,
+      email: account.getEmail(),
+      document: account.getDocument(),
+      password: account.getPassword(),
       balances: account.balances.map((balance: Balance) => ({
         assetId: balance.assetId,
         quantity: balance.quantity,

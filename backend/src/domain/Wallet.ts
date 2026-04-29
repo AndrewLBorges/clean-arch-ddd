@@ -1,41 +1,20 @@
 import Balance from './Balance';
-import Document from './Document';
-import Email from './Email';
-import Name from './Name';
 import Order from './Order';
-import Password from './Password';
 import UUID from './UUID';
 
-export default class Account {
-  private name: Name;
-  private email: Email;
-  private document: Document;
-  private password: Password;
+export default class Wallet {
   private accountId: UUID;
   constructor(
     accountId: string,
-    name: string,
-    email: string,
-    document: string,
-    password: string,
     readonly balances: Balance[],
   ) {
     this.accountId = new UUID(accountId);
-    this.name = new Name(name);
-    this.email = new Email(email);
-    this.document = new Document(document);
-    this.password = new Password(password);
   }
 
-  static createAccount(
-    name: string,
-    email: string,
-    document: string,
-    password: string,
-  ) {
+  static createWallet() {
     const accountId = UUID.create().getValue();
     const balances: Balance[] = [];
-    return new Account(accountId, name, email, document, password, balances);
+    return new Wallet(accountId, balances);
   }
 
   deposit(assetId: string, quantity: number) {
@@ -87,26 +66,6 @@ export default class Account {
     balance.blockedQuantity += quantity;
 
     return true;
-  }
-
-  getName(): string {
-    return this.name.getValue();
-  }
-
-  getEmail(): string {
-    return this.email.getValue();
-  }
-
-  setEmail(email: string) {
-    this.email = new Email(email);
-  }
-
-  getDocument(): string {
-    return this.document.getValue();
-  }
-
-  getPassword(): string {
-    return this.password.getValue();
   }
 
   getAccountId(): string {

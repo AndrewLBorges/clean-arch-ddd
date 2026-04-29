@@ -14,11 +14,11 @@ export class AccountRepositoryDatabase implements AccountRepository {
     await this.connection.query(
       'INSERT INTO ccca.account(account_id, name, email, document, password) VALUES($1, $2, $3, $4, $5)',
       [
-        account.accountId,
+        account.getAccountId(),
         account.getName(),
-        account.email,
-        account.document,
-        account.password,
+        account.getEmail(),
+        account.getDocument(),
+        account.getPassword(),
       ],
     );
   }
@@ -26,13 +26,18 @@ export class AccountRepositoryDatabase implements AccountRepository {
   async updateAccount(account: Account): Promise<void> {
     await this.connection.query(
       'DELETE FROM ccca.balance WHERE account_id = $1',
-      [account.accountId],
+      [account.getAccountId()],
     );
 
     for (const balance of account.balances) {
       await this.connection.query(
-        'INSERT INTO ccca.balance(account_id, asset_id, quantity) VALUES($1, $2, $3)',
-        [account.accountId, balance.assetId, balance.quantity],
+        'INSERT INTO ccca.balance(account_id, asset_id, quantity, blocked_quantity) VALUES($1, $2, $3, $4)',
+        [
+          account.getAccountId(),
+          balance.assetId,
+          balance.quantity,
+          balance.blockedQuantity,
+        ],
       );
     }
   }
@@ -49,7 +54,11 @@ export class AccountRepositoryDatabase implements AccountRepository {
     );
     const balances = balancesData.map(
       (balancesData: any) =>
-        new Balance(balancesData.asset_id, parseFloat(balancesData.quantity)),
+        new Balance(
+          balancesData.asset_id,
+          parseFloat(balancesData.quantity),
+          parseFloat(balancesData.blocked_quantity),
+        ),
     );
     if (!account) throw new Error('Account not found');
     return new Account(
@@ -77,7 +86,7 @@ export class AccountRepositoryMemory implements AccountRepository {
 
   async getAccountById(accountId: string): Promise<Account> {
     const account = this.accounts.find(
-      (account: Account) => account.accountId === accountId,
+      (account: Account) => account.getAccountId() === accountId,
     );
     if (!account) throw new Error('Account not found');
     return account;
