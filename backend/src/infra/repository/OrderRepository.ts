@@ -3,7 +3,10 @@ import DatabaseConnection from '../database/DatabaseConnection';
 
 export default interface OrderRepository {
   saveOrder(order: Order): Promise<void>;
+  updateOrder(order: Order): Promise<void>;
   getOrderById(orderId: string): Promise<Order>;
+  getHighestBuy(marketId: string): Promise<Order | undefined>;
+  getLowestSell(marketId: string): Promise<Order | undefined>;
 }
 
 export class OrderRepositoryDatabase implements OrderRepository {
@@ -27,6 +30,18 @@ export class OrderRepositoryDatabase implements OrderRepository {
     );
   }
 
+  async updateOrder(order: Order): Promise<void> {
+    await this.connection.query(
+      'UPDATE ccca.order SET fill_quantity = $1, fill_price = $2, status = $3 WHERE order_id = $4',
+      [
+        order.getFillQuantity(),
+        order.getFillPrice(),
+        order.getStatus(),
+        order.getOrderId(),
+      ],
+    );
+  }
+
   async getOrderById(orderId: string): Promise<Order> {
     const [orderData] = await this.connection.query(
       'SELECT * FROM ccca.order WHERE order_id = $1',
@@ -46,20 +61,44 @@ export class OrderRepositoryDatabase implements OrderRepository {
       new Date(orderData.timestamp),
     );
   }
-}
 
-export class OrderRepositoryMemory implements OrderRepository {
-  orders: Order[] = [];
-
-  async saveOrder(order: Order): Promise<void> {
-    this.orders.push(order);
+  async getHighestBuy(marketId: string): Promise<Order | undefined> {
+    const [orderData] = await this.connection.query(
+      'SELECT * FROM ccca.order WHERE market_id = $1 AND side = $2 AND status = $3 ORDER BY price DESC, timestamp ASC LIMIT 1',
+      [marketId, 'buy', 'open'],
+    );
+    if (!orderData) return undefined;
+    return new Order(
+      orderData.order_id,
+      orderData.market_id,
+      orderData.account_id,
+      orderData.side,
+      parseFloat(orderData.quantity),
+      parseFloat(orderData.price),
+      parseFloat(orderData.fill_quantity),
+      parseFloat(orderData.fill_price),
+      orderData.status,
+      new Date(orderData.timestamp),
+    );
   }
 
-  async getOrderById(orderId: string): Promise<Order> {
-    const order = this.orders.find(
-      (order: Order) => order.getOrderId() === orderId,
+  async getLowestSell(marketId: string): Promise<Order | undefined> {
+    const [orderData] = await this.connection.query(
+      'SELECT * FROM ccca.order WHERE market_id = $1 AND side = $2 AND status = $3 ORDER BY price ASC, timestamp ASC LIMIT 1',
+      [marketId, 'sell', 'open'],
     );
-    if (!order) throw new Error('Order not found');
-    return order;
+    if (!orderData) return undefined;
+    return new Order(
+      orderData.order_id,
+      orderData.market_id,
+      orderData.account_id,
+      orderData.side,
+      parseFloat(orderData.quantity),
+      parseFloat(orderData.price),
+      parseFloat(orderData.fill_quantity),
+      parseFloat(orderData.fill_price),
+      orderData.status,
+      new Date(orderData.timestamp),
+    );
   }
 }

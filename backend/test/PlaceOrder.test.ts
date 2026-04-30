@@ -8,6 +8,7 @@ import DatabaseConnection, {
 } from '../src/infra/database/DatabaseConnection';
 import { AccountRepositoryDatabase } from '../src/infra/repository/AccountRepository';
 import { OrderRepositoryDatabase } from '../src/infra/repository/OrderRepository';
+import { WalletRepositoryDatabase } from '../src/infra/repository/WalletRepository';
 
 let databaseConnection: DatabaseConnection;
 let signup: Signup;
@@ -20,10 +21,11 @@ beforeEach(() => {
   databaseConnection = new PgPromiseAdapter();
   const accountRepository = new AccountRepositoryDatabase(databaseConnection);
   const orderRepository = new OrderRepositoryDatabase(databaseConnection);
+  const walletRepository = new WalletRepositoryDatabase(databaseConnection);
   signup = new Signup(accountRepository);
-  getAccount = new GetAccount(accountRepository);
-  deposit = new Deposit(accountRepository);
-  placeOrder = new PlaceOrder(accountRepository, orderRepository);
+  getAccount = new GetAccount(accountRepository, walletRepository);
+  deposit = new Deposit(accountRepository, walletRepository);
+  placeOrder = new PlaceOrder(orderRepository, walletRepository);
   getOrder = new GetOrder(orderRepository);
 });
 

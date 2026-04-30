@@ -1,16 +1,22 @@
 import AccountRepository from '../../infra/repository/AccountRepository';
+import WalletRepository from '../../infra/repository/WalletRepository';
 
 export default class Withdraw {
-  constructor(readonly accountRepository: AccountRepository) {
-    this.accountRepository = accountRepository;
-  }
+  constructor(
+    readonly acctountRepository: AccountRepository,
+    readonly walletRepository: WalletRepository,
+  ) {}
 
   async execute(input: Input): Promise<void> {
-    const account = await this.accountRepository.getAccountById(
+    const account = await this.acctountRepository.getAccountById(
       input.accountId,
     );
-    account.withdraw(input.assetId, input.quantity);
-    await this.accountRepository.updateAccount(account);
+    if (!account) throw new Error('Account not found');
+    const wallet = await this.walletRepository.getWalletByAccountId(
+      input.accountId,
+    );
+    wallet.withdraw(input.assetId, input.quantity);
+    await this.walletRepository.updateWallet(wallet);
   }
 }
 

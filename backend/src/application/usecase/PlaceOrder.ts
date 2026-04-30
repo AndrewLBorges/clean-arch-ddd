@@ -1,20 +1,19 @@
 import Order from '../../domain/Order';
-import AccountRepository from '../../infra/repository/AccountRepository';
 import OrderRepository from '../../infra/repository/OrderRepository';
+import WalletRepository from '../../infra/repository/WalletRepository';
 
 export default class PlaceOrder {
   constructor(
-    readonly accountRepository: AccountRepository,
     readonly orderRepository: OrderRepository,
-  ) {
-    this.accountRepository = accountRepository;
-  }
+    readonly walletRepository: WalletRepository,
+  ) {}
 
   async execute(input: Input): Promise<Output> {
-    const account = await this.accountRepository.getAccountById(
+    const wallet = await this.walletRepository.getWalletByAccountId(
       input.accountId,
     );
-    if (!account) throw new Error('Account not found');
+
+    if (!wallet) throw new Error('Account not found');
 
     const order = Order.createOrder(
       input.accountId,
@@ -24,12 +23,45 @@ export default class PlaceOrder {
       input.price,
     );
 
-    const hasBalance = account.blockOrder(order);
+    const hasBalance = wallet.blockOrder(order);
 
     if (!hasBalance) throw new Error('Insufficient funds');
 
     await this.orderRepository.saveOrder(order);
-    await this.accountRepository.updateAccount(account);
+    await this.walletRepository.updateWallet(wallet);
+
+    while (true) {
+      const highestBuy = await this.orderRepository.getHighestBuy(
+        input.marketId,
+      );
+      const lowestSell = await this.orderRepository.getLowestSell(
+        input.marketId,
+      );
+
+      if (
+        !highestBuy ||
+        !lowestSell ||
+        highestBuy.getPrice() < lowestSell.getPrice()
+      ) {
+        break;
+      }
+
+      const fillQuantity = Math.min(
+        highestBuy.getQuantity(),
+        lowestSell.getQuantity(),
+      );
+      const fillPrice =
+        (highestBuy.getTimestamp() > lowestSell.getTimestamp()
+          ? highestBuy
+          : lowestSell
+        ).getPrice() || 0;
+
+      highestBuy.fill(fillQuantity, fillPrice);
+      lowestSell.fill(fillQuantity, fillPrice);
+
+      await this.orderRepository.updateOrder(highestBuy);
+      await this.orderRepository.updateOrder(lowestSell);
+    }
     return {
       orderId: order.getOrderId(),
     };

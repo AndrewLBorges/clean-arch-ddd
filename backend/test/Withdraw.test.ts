@@ -6,6 +6,7 @@ import DatabaseConnection, {
   PgPromiseAdapter,
 } from '../src/infra/database/DatabaseConnection';
 import { AccountRepositoryDatabase } from '../src/infra/repository/AccountRepository';
+import { WalletRepositoryDatabase } from '../src/infra/repository/WalletRepository';
 
 let databaseConnection: DatabaseConnection;
 let signup: Signup;
@@ -16,10 +17,11 @@ let withdraw: Withdraw;
 beforeEach(() => {
   databaseConnection = new PgPromiseAdapter();
   const accountRepository = new AccountRepositoryDatabase(databaseConnection);
+  const walletRepository = new WalletRepositoryDatabase(databaseConnection);
   signup = new Signup(accountRepository);
-  getAccount = new GetAccount(accountRepository);
-  deposit = new Deposit(accountRepository);
-  withdraw = new Withdraw(accountRepository);
+  getAccount = new GetAccount(accountRepository, walletRepository);
+  deposit = new Deposit(accountRepository, walletRepository);
+  withdraw = new Withdraw(accountRepository, walletRepository);
 });
 
 test('Deve sacar de uma conta', async () => {
