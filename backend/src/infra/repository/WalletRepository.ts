@@ -1,6 +1,7 @@
 import Balance from '../../domain/Balance';
 import Wallet from '../../domain/Wallet';
 import DatabaseConnection from '../database/DatabaseConnection';
+import { inject } from '../di/Registry';
 
 export default interface WalletRepository {
   updateWallet(wallet: Wallet): Promise<void>;
@@ -8,7 +9,8 @@ export default interface WalletRepository {
 }
 
 export class WalletRepositoryDatabase implements WalletRepository {
-  constructor(readonly connection: DatabaseConnection) {}
+  @inject('databaseConnection')
+  connection!: DatabaseConnection;
 
   async updateWallet(wallet: Wallet): Promise<void> {
     await this.connection.query(

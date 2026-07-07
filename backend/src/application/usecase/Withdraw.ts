@@ -1,14 +1,15 @@
+import { inject } from '../../infra/di/Registry';
 import AccountRepository from '../../infra/repository/AccountRepository';
 import WalletRepository from '../../infra/repository/WalletRepository';
 
 export default class Withdraw {
-  constructor(
-    readonly acctountRepository: AccountRepository,
-    readonly walletRepository: WalletRepository,
-  ) {}
+  @inject('accountRepository')
+  accountRepository!: AccountRepository;
+  @inject('walletRepository')
+  walletRepository!: WalletRepository;
 
   async execute(input: Input): Promise<void> {
-    const account = await this.acctountRepository.getAccountById(
+    const account = await this.accountRepository.getAccountById(
       input.accountId,
     );
     if (!account) throw new Error('Account not found');

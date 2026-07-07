@@ -1,12 +1,13 @@
 import Order from '../../domain/Order';
+import { inject } from '../../infra/di/Registry';
 import OrderRepository from '../../infra/repository/OrderRepository';
 import WalletRepository from '../../infra/repository/WalletRepository';
 
 export default class PlaceOrder {
-  constructor(
-    readonly orderRepository: OrderRepository,
-    readonly walletRepository: WalletRepository,
-  ) {}
+  @inject('orderRepository')
+  orderRepository!: OrderRepository;
+  @inject('walletRepository')
+  walletRepository!: WalletRepository;
 
   async execute(input: Input): Promise<Output> {
     const wallet = await this.walletRepository.getWalletByAccountId(

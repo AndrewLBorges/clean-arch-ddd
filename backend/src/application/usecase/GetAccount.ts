@@ -1,12 +1,13 @@
 import Balance from '../../domain/Balance';
+import { inject } from '../../infra/di/Registry';
 import AccountRepository from '../../infra/repository/AccountRepository';
 import WalletRepository from '../../infra/repository/WalletRepository';
 
 export default class GetAccount {
-  constructor(
-    readonly accountRepository: AccountRepository,
-    readonly walletRepository: WalletRepository,
-  ) {}
+  @inject('accountRepository')
+  accountRepository!: AccountRepository;
+  @inject('walletRepository')
+  walletRepository!: WalletRepository;
 
   async execute(accountId: string): Promise<Output> {
     const account = await this.accountRepository.getAccountById(accountId);

@@ -1,5 +1,6 @@
 import Order from '../../domain/Order';
 import DatabaseConnection from '../database/DatabaseConnection';
+import { inject } from '../di/Registry';
 
 export default interface OrderRepository {
   saveOrder(order: Order): Promise<void>;
@@ -10,7 +11,8 @@ export default interface OrderRepository {
 }
 
 export class OrderRepositoryDatabase implements OrderRepository {
-  constructor(readonly connection: DatabaseConnection) {}
+  @inject('databaseConnection')
+  connection!: DatabaseConnection;
 
   async saveOrder(order: Order): Promise<void> {
     await this.connection.query(
